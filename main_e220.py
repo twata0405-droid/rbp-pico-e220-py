@@ -5,9 +5,15 @@ import ssd1306                # 液晶表示器用ライブラリ
 import _thread  # 複数のタスクを同時に実行するスレッドモジュールを準備
 
 """
+Ver 01.03 2026.10.04 : Fixed Send mode
+
 Module Conf.
 #comd = [0xc0, 0x03, 0x01, 0x00] #RSSI環境ノイズ"0"
 #comd = [0xc0, 0x05, 0x01, 0x83] #RSSIバイト"1"
+
+#comd = [0xc0, 0x01, 0x01, 0x04] #Air address(L) 0x00 -> 0x04
+#comd = [0xc0, 0x05, 0x01, 0xC3] #Transparent mode -> Fixed send mode
+
 
 Multi thread
 https://logikara.blog/pico-multicore/#toc8
@@ -81,6 +87,12 @@ def disp(t, r, c):
 disp('E220 LoRa TEST3', 1, 2)
 # Column 2, 12, 22, 32, 42, 52
 
+# Fixed send mode Air-Address = 0x0004, Air-Channel = 0x0F
+airaddr = bytes([0x00, 0x04, 0x0F])
+
+"""
+Main loop 
+"""
 while True:
     #rxData : 受け取ったデータバイト列
     #brxData : 最後のrssiバイトを除いたデータバイト列
@@ -156,7 +168,11 @@ while True:
         #送信データを処理
         txData = b'T001 req act :'+ str(cnt[0]).encode()
         
-        e220.send(txData)
+        ##Transparent mode
+        #e220.send(txData)
+        
+        #Fixed send mode
+        e220.send(airaddr + txData)
         
         led.off()     # 本体LEDを消灯
         
